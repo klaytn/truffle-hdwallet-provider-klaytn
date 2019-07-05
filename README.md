@@ -1,84 +1,104 @@
-<img src="https://truffleframework.com/img/truffle-logo-dark.svg" width="200">
+# truffle-hdwallet-provider
+HD Wallet-enabled Web3 provider. Use it to sign transactions for addresses derived from a 12 or 24 word mnemonic.
 
-[![npm](https://img.shields.io/npm/v/truffle.svg)](https://www.npmjs.com/package/truffle)
-[![npm](https://img.shields.io/npm/dm/truffle.svg)](https://www.npmjs.com/package/truffle)
-[![Join the chat at https://gitter.im/consensys/truffle](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/consensys/truffle?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Build Status](https://travis-ci.org/trufflesuite/truffle.svg?branch=next)](https://travis-ci.org/trufflesuite/truffle)
-[![Coverage Status](https://coveralls.io/repos/github/trufflesuite/truffle/badge.svg?branch=next)](https://coveralls.io/github/trufflesuite/truffle?branch=next)
-
------------------------
-
-
-Truffle is a development environment, testing framework and asset pipeline for Ethereum, aiming to make life as an Ethereum developer easier. With Truffle, you get:
-
-* Built-in smart contract compilation, linking, deployment and binary management.
-* Automated contract testing with Mocha and Chai.
-* Configurable build pipeline with support for custom build processes.
-* Scriptable deployment & migrations framework.
-* Network management for deploying to many public & private networks.
-* Interactive console for direct contract communication.
-* Instant rebuilding of assets during development.
-* External script runner that executes scripts within a Truffle environment.
-
-| ℹ️ **Contributors**: Please see the [Development](#development) section of this README. |
-| --- |
-
-### Install
+## Install
 
 ```
-$ npm install -g truffle
+$ npm install truffle-hdwallet-provider
 ```
 
-### Quick Usage
-
-For a default set of contracts and tests, run the following within an empty project directory:
-
+## Requirements
 ```
-$ truffle init
+Node >= 7.6
+Web3 1.0.0-beta.37
 ```
 
-From there, you can run `truffle compile`, `truffle migrate` and `truffle test` to compile your contracts, deploy those contracts to the network, and run their associated unit tests.
+## General Usage
 
-Truffle comes bundled with a local development blockchain server that launches automatically when you invoke the commands  above. If you'd like to [configure a more advanced development environment](https://truffleframework.com/docs/advanced/configuration) we recommend you install the blockchain server separately by running `npm install -g ganache-cli` at the command line.
+You can use this provider wherever a Web3 provider is needed, not just in Truffle. For Truffle-specific usage, see next section.
 
-+  [ganache-cli](https://github.com/trufflesuite/ganache-cli): a command-line version of Truffle's blockchain server.
-+  [ganache](https://truffleframework.com/ganache/): A GUI for the server that displays your transaction history and chain state.
+```javascript
+const HDWalletProvider = require("truffle-hdwallet-provider");
+const Web3 = require("web3");
+const mnemonic = "mountains supernatural bird..."; // 12 word mnemonic
+let provider = new HDWalletProvider(mnemonic, "http://localhost:8545");
+
+// Or, alternatively pass in a zero-based address index.
+provider = new HDWalletProvider(mnemonic, "http://localhost:8545", 5);
+
+// Or, use your own hierarchical derivation path
+provider = new HDWalletProvider(mnemonic, "http://localhost:8545", 5, 1, true, "m/44'/137'/0'/0/");
 
 
-### Documentation
+// HDWalletProvider is compatible with Web3. Use it at Web3 constructor, just like any other Web3 Provider
+const web3 = new Web3(provider);
 
-Please see the [Official Truffle Documentation](https://truffleframework.com/docs/) for guides, tips, and examples.
+// Or, if web3 is alreay initialized, you can call the 'setProvider' on web3, web3.eth, web3.shh and/or web3.bzz
+web3.setProvider(provider)
 
-### Development
+// ...
+// Write your code here.
+// ...
 
-We welcome pull requests. To get started, just fork this repo, clone it locally, and run:
-
-```shell
-# Install
-npm install -g lerna@3.4.3
-npm install -g yarn
-yarn bootstrap
-
-# Test
-yarn test
-
-# Adding dependencies to a package
-cd packages/<truffle-package>
-yarn add <npm-package> [--dev] # Use yarn
+// At termination, `provider.engine.stop()' should be called to finish the process elegantly.
+provider.engine.stop();
 ```
 
-If you'd like to update a dependency to the same version across all packages, you might find [this utility](https://www.npmjs.com/package/lerna-update-wizard) helpful.
+By default, the `HDWalletProvider` will use the address of the first address that's generated from the mnemonic. If you pass in a specific index, it'll use that address instead.
 
-*Notes on project branches:*
-+    `master`: Stable, released version (v5)
-+    `beta`: Released beta version
-+    `develop`: Work targeting stable release (v5)
-+    `next`: Upcoming feature development and most new work
+Parameters:
 
-Please make pull requests against `next` for any substantial changes. Small changes and bugfixes can be considered for `develop`.
+| Parameter | Type | Default | Required | Description |
+| ------ | ---- | ------- | ----------- | ----------- |
+| `mnemonic` | *`string*` | null | [x] | 12 word mnemonic which addresses are created from. |
+| `provider` | `string\|object` | `null` | [x] | URI or Ethereum client to send all other non-transaction-related Web3 requests |
+| `address_index` | `number` | `0` | [ ] | If specified, will tell the provider to manage the address at the index specified |
+| `num_addresses` | `number` | `1` | [ ] | If specified, will create `number` addresses when instantiated |
+| `shareNonce` | `boolean` | `true` | [ ] | If false, a new WalletProvider will track its own nonce-state |
+| `wallet_hdpath` | `string` | `"m/44'/60'/0'/0/"` | [ ] | If specified, will tell the wallet engine what derivation path should use to derive addresses. |
 
-There is a bit more information in the [CONTRIBUTING.md](./CONTRIBUTING.md) file.
 
-### License
+### Private Keys
 
-MIT
+Instead of a mnemonic, you can alternatively provide a private key or array of private keys as the first parameter. When providing an array, `address_index` and `num_addresses` are fully supported.
+
+```javascript
+const HDWalletProvider = require("truffle-hdwallet-provider");
+//load single private key as string
+let provider = new HDWalletProvider("3f841bf589fdf83a521e55d51afddc34fa65351161eead24f064855fc29c9580", "http://localhost:8545");
+
+// Or, pass an array of private keys, and optionally use a certain subset of addresses
+const privateKeys = [
+  "3f841bf589fdf83a521e55d51afddc34fa65351161eead24f064855fc29c9580",
+  "9549f39decea7b7504e15572b2c6a72766df0281cea22bd1a3bc87166b1ca290",
+];
+provider = new HDWalletProvider(privateKeys, "http://localhost:8545", 0, 2); //start at address_index 0 and load both addresses
+```
+**NOTE: This is just an example. NEVER hard code production/mainnet private keys in your code or commit them to git. They should always be loaded from environment variables or a secure secret management system.**
+
+## Truffle Usage
+
+You can easily use this within a Truffle configuration. For instance:
+
+truffle-config.js
+```javascript
+const HDWalletProvider = require("truffle-hdwallet-provider");
+
+const mnemonic = "mountains supernatural bird ...";
+
+module.exports = {
+  networks: {
+    development: {
+      host: "localhost",
+      port: 8545,
+      network_id: "*" // Match any network id
+    },
+    ropsten: {
+      // must be a thunk, otherwise truffle commands may hang in CI
+      provider: () =>
+        new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/YOUR-PROJECT-ID"),
+      network_id: '3',
+    }
+  }
+};
+```

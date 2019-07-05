@@ -1,41 +1,45 @@
 {
-  "private": true,
+  "name": "truffle-hdwallet-provider",
+  "description": "HD Wallet-enabled Web3 provider",
+  "license": "MIT",
+  "author": "Tim Coulter <tim.coulter@consensys.net>",
+  "homepage": "https://github.com/trufflesuite/truffle/tree/master/packages/truffle-hdwallet-provider#readme",
+  "repository": "https://github.com/trufflesuite/truffle/tree/master/packages/truffle-hdwallet-provider",
+  "bugs": {
+    "url": "https://github.com/trufflesuite/truffle/issues"
+  },
+  "version": "1.0.13",
+  "main": "dist/index.js",
   "scripts": {
-    "bootstrap": "lerna bootstrap",
-    "prepare": "lerna run prepare --stream --concurrency=1",
-    "publish-release": "./scripts/publish-release.sh",
-    "prepare-release": "./scripts/prepare-release.sh",
-    "test": "lerna run test --stream --concurrency=1 -- --colors",
-    "ci": "./scripts/ci.sh",
-    "geth": "./scripts/geth.sh",
-    "solc-bump": "node ./scripts/solc-bump.js"
+    "prepare": "npx webpack --config webpack/webpack.config.js",
+    "test": "mocha --timeout 5000"
+  },
+  "dependencies": {
+    "any-promise": "^1.3.0",
+    "bindings": "^1.3.1",
+    "web3": "1.0.0-beta.37",
+    "websocket": "^1.0.28"
   },
   "devDependencies": {
-    "coveralls": "^3.0.2",
-    "eslint": "^5.7.0",
-    "husky": "^1.2.0",
-    "lerna": "^3.4.3",
-    "lint-staged": "^7.3.0",
-    "nyc": "^13.0.1",
-    "prettier": "1.14.3",
-    "prs-merged-since": "^1.1.0"
+    "@babel/core": "^7.0.0-0",
+    "bip39": "^2.2.0",
+    "ethereumjs-tx": "^1.3.7",
+    "ethereumjs-util": "^5.2.0",
+    "ethereumjs-wallet": "^0.6.2",
+    "ganache-core": "2.5.5",
+    "js-scrypt": "^0.2.0",
+    "mocha": "5.2.0",
+    "web3": "1.0.0-beta.37",
+    "web3-provider-engine": "https://github.com/trufflesuite/provider-engine#web3-one",
+    "webpack": "^4.24.0",
+    "webpack-cli": "^3.1.2"
   },
-  "workspaces": {
-    "packages": [
-      "packages/*"
-    ]
-  },
-  "dependencies": {},
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.js": [
-      "prettier --write",
-      "eslint --fix",
-      "git add"
-    ]
-  }
+  "keywords": [
+    "etheruem",
+    "hd",
+    "mnemonic",
+    "provider",
+    "wallet"
+  ],
+  "gitHead": "b207efb3c1409746537293b3e0fc27350029188e"
 }
