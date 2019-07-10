@@ -1,10 +1,9 @@
 {
-  "name": "truffle-hdwallet-provider",
-  "description": "HD Wallet-enabled Web3 provider",
+  "name": "truffle-hdwallet-provider-klaytn",
+  "description": "HD Wallet-enabled Web3 provider patched for Klaytn network",
   "license": "MIT",
   "author": "Tim Coulter <tim.coulter@consensys.net>",
   "homepage": "https://github.com/trufflesuite/truffle/tree/master/packages/truffle-hdwallet-provider#readme",
-  "repository": "https://github.com/trufflesuite/truffle/tree/master/packages/truffle-hdwallet-provider",
   "bugs": {
     "url": "https://github.com/trufflesuite/truffle/issues"
   },
@@ -17,13 +16,13 @@
   "dependencies": {
     "any-promise": "^1.3.0",
     "bindings": "^1.3.1",
+    "caver-js": "^1.0.0",
     "web3": "1.0.0-beta.37",
     "websocket": "^1.0.28"
   },
   "devDependencies": {
     "@babel/core": "^7.0.0-0",
     "bip39": "^2.2.0",
-    "ethereumjs-tx": "^1.3.7",
     "ethereumjs-util": "^5.2.0",
     "ethereumjs-wallet": "^0.6.2",
     "ganache-core": "2.5.5",
@@ -35,7 +34,7 @@
     "webpack-cli": "^3.1.2"
   },
   "keywords": [
-    "etheruem",
+    "klaytn",
     "hd",
     "mnemonic",
     "provider",
