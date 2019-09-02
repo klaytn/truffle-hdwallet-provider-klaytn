@@ -7,7 +7,7 @@
   "bugs": {
     "url": "https://github.com/trufflesuite/truffle/issues"
   },
-  "version": "1.0.13",
+  "version": "1.0.13-b",
   "main": "dist/index.js",
   "scripts": {
     "prepare": "npx webpack --config webpack/webpack.config.js",

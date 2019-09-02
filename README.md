@@ -94,11 +94,17 @@ module.exports = {
       port: 8545,
       network_id: "*" // Match any network id
     },
-    ropsten: {
-      // must be a thunk, otherwise truffle commands may hang in CI
-      provider: () =>
-        new HDWalletProvider(mnemonic, "https://ropsten.infura.io/v3/YOUR-PROJECT-ID"),
-      network_id: '3',
+    testnet: {
+      provider: () => new HDWalletProvider(mnemonic, "https://api.baobab.klaytn.net:8651"),
+      network_id: '1001', //Klaytn baobab testnet's network id
+      gas: '8500000',
+      gasPrice: null
+    },
+    mainnet: {
+      provider: () => new HDWalletProvider(mnemonic, "https://api.cypress.klaytn.net:8651"),
+      network_id: '8217', //Klaytn mainnet's network id
+      gas: '8500000',
+      gasPrice: null
     }
   }
 };
