@@ -1,11 +1,11 @@
 {
   "name": "truffle-hdwallet-provider-klaytn",
-  "description": "HD Wallet-enabled Web3 provider patched for Klaytn network",
+  "description": "HD Wallet-enabled Web3 provider for Klaytn",
   "license": "MIT",
-  "author": "Tim Coulter <tim.coulter@consensys.net>",
-  "homepage": "https://github.com/trufflesuite/truffle/tree/master/packages/truffle-hdwallet-provider#readme",
+  "author": "Klaytn Team",
+  "homepage": "https://github.com/ground-x/truffle-hdwallet-provider-klaytn",
   "bugs": {
-    "url": "https://github.com/trufflesuite/truffle/issues"
+    "homepage": "https://github.com/ground-x/truffle-hdwallet-provider-klaytn/issues"
   },
   "version": "1.0.13-b",
   "main": "dist/index.js",
