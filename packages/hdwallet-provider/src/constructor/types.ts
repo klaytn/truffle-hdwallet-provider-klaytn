@@ -16,3 +16,14 @@ export type NumberOfAddresses = number;
 export type PollingInterval = number;
 export type ShareNonce = boolean;
 export type DerivationPath = string;
+
+export interface txResult {
+  messageHash: string,
+  v: string,
+  r: string,
+  s: string,
+  rawTransaction: string,
+  txHash: string,
+  senderTxHash: string,
+  feePayerSignatures: string[],
+}

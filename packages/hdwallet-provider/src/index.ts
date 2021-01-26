@@ -4,7 +4,6 @@ import { wordlist } from "ethereum-cryptography/bip39/wordlists/english";
 import * as EthUtil from "ethereumjs-util";
 import ethJSWallet from "ethereumjs-wallet";
 import { hdkey as EthereumHDKey } from "ethereumjs-wallet";
-import Transaction from "ethereumjs-tx";
 // @ts-ignore
 import ProviderEngine from "@trufflesuite/web3-provider-engine";
 import FiltersSubprovider from "@trufflesuite/web3-provider-engine/subproviders/filters";
@@ -22,6 +21,8 @@ import { ConstructorArguments } from "./constructor/ConstructorArguments";
 import { getOptions } from "./constructor/getOptions";
 import { getPrivateKeys } from "./constructor/getPrivateKeys";
 import { getMnemonic } from "./constructor/getMnemonic";
+import { txResult } from "./constructor/types";
+const Caver = require("caver-js");
 
 // Important: do not use debug module. Reason: https://github.com/trufflesuite/truffle/issues/2374#issuecomment-536109086
 
@@ -146,14 +147,16 @@ class HDWalletProvider {
           let pkey;
           const from = txParams.from.toLowerCase();
           if (tmp_wallets[from]) {
-            pkey = tmp_wallets[from].getPrivateKey();
+            pkey = tmp_wallets[from].getPrivateKey().toString("hex");
           } else {
             cb("Account not found");
           }
-          const tx = new Transaction(txParams);
-          tx.sign(pkey as Buffer);
-          const rawTx = `0x${tx.serialize().toString("hex")}`;
-          cb(null, rawTx);
+          const caver = new Caver(providerOrUrl);
+          caver.klay.accounts
+            .signTransaction(txParams, pkey)
+            .then((result: txResult) => {
+              cb(null, result.rawTransaction);
+            });
         },
         signMessage({ data, from }: any, cb: any) {
           const dataIfExists = data;
