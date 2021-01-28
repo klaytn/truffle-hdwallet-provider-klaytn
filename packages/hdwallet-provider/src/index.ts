@@ -9,7 +9,8 @@ import ProviderEngine from "@trufflesuite/web3-provider-engine";
 import FiltersSubprovider from "@trufflesuite/web3-provider-engine/subproviders/filters";
 import NonceSubProvider from "@trufflesuite/web3-provider-engine/subproviders/nonce-tracker";
 import HookedSubprovider from "@trufflesuite/web3-provider-engine/subproviders/hooked-wallet";
-import ProviderSubprovider from "@trufflesuite/web3-provider-engine/subproviders/provider";
+// import ProviderSubprovider from "@trufflesuite/web3-provider-engine/subproviders/provider";
+const ProviderSubprovider = require("./subproviders/provider.js");
 // @ts-ignore
 import RpcProvider from "@trufflesuite/web3-provider-engine/subproviders/rpc";
 // @ts-ignore
@@ -147,16 +148,18 @@ class HDWalletProvider {
           let pkey;
           const from = txParams.from.toLowerCase();
           if (tmp_wallets[from]) {
-            pkey = tmp_wallets[from].getPrivateKey().toString("hex");
+            pkey = "0x" + tmp_wallets[from].getPrivateKey().toString("hex");
           } else {
             cb("Account not found");
           }
           const caver = new Caver(providerOrUrl);
+          txParams.gas = "0x500000";
           caver.klay.accounts
             .signTransaction(txParams, pkey)
-            .then((result: txResult) => {
-              cb(null, result.rawTransaction);
-            });
+            .then((r: txResult) => {
+              cb(null, r.rawTransaction);
+            })
+            .catch(console.log);
         },
         signMessage({ data, from }: any, cb: any) {
           const dataIfExists = data;
