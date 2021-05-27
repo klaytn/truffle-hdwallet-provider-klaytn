@@ -97,7 +97,7 @@ module.exports = {
 
         return new HDWalletProvider(pks, "http://localhost:8551", 0, pks.length)
       },
-      network_id: '203', //Klaytn baobab testnet's network id
+      network_id: '1001', //Klaytn baobab testnet's network id
       gas: '8500000',
       gasPrice: null
     },
