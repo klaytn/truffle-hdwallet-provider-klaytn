@@ -5,6 +5,8 @@ yarn-error.log
 .vscode
 bin
 .DS_Store
+package-lock.json
+yarn.lock
 
 # truffle
 packages/truffle/build
