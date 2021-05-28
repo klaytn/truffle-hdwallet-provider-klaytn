@@ -7,7 +7,7 @@ const FiltersSubprovider = require("web3-provider-engine/subproviders/filters.js
 const NonceSubProvider = require("web3-provider-engine/subproviders/nonce-tracker.js");
 const HookedSubprovider = require("web3-provider-engine/subproviders/hooked-wallet.js");
 const ProviderSubprovider = require("./subproviders/provider.js");
-const Web3 = require("web3");
+const Caver = require("caver-js");
 const Transaction = require("ethereumjs-tx");
 const ethUtil = require("ethereumjs-util");
 const Url = require("url");
@@ -150,7 +150,7 @@ class HDWalletProvider {
       // Web3.providers.HttpProvider.prototype.send;
       this.engine.addProvider(
         new ProviderSubprovider(
-          new Web3.providers.HttpProvider(provider, { keepAlive: false })
+          new Caver.providers.HttpProvider(provider, { keepAlive: false })
         )
       );
     } else {
