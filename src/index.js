@@ -8,7 +8,6 @@ const NonceSubProvider = require("web3-provider-engine/subproviders/nonce-tracke
 const HookedSubprovider = require("web3-provider-engine/subproviders/hooked-wallet.js");
 const ProviderSubprovider = require("./subproviders/provider.js");
 const Caver = require("caver-js");
-const Transaction = require("ethereumjs-tx");
 const ethUtil = require("ethereumjs-util");
 const Url = require("url");
 
@@ -113,10 +112,13 @@ class HDWalletProvider {
           } else {
             cb("Account not found");
           }
-          const tx = new Transaction(txParams);
-          tx.sign(pkey);
-          const rawTx = `0x${tx.serialize().toString("hex")}`;
-          cb(null, rawTx);
+          const caver = new Caver(provider);
+          caver.klay.accounts.signTransaction(
+            txParams,
+            pkey.toString("hex"),
+          ).then((result) => {
+            cb(null, result.rawTransaction)
+          })
         },
         signMessage({ data, from }, cb) {
           const dataIfExists = data;
