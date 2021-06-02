@@ -1,21 +1,21 @@
-const inherits = require('util').inherits
-const Subprovider = require('./subprovider.js')
+const inherits = require("util").inherits;
+const Subprovider = require("./subprovider.js");
 
 // wraps a provider in a subprovider interface
 
-module.exports = ProviderSubprovider
+module.exports = ProviderSubprovider;
 
-inherits(ProviderSubprovider, Subprovider)
+inherits(ProviderSubprovider, Subprovider);
 
-function ProviderSubprovider(provider){
-  if (!provider) throw new Error('ProviderSubprovider - no provider specified')
-  this.provider = provider
+function ProviderSubprovider(provider) {
+  if (!provider) throw new Error("ProviderSubprovider - no provider specified");
+  this.provider = provider;
 }
 
-ProviderSubprovider.prototype.handleRequest = function(payload, next, end){
-  this.provider.send(payload, function(err, response) {
-    if (err) return end(err)
+ProviderSubprovider.prototype.handleRequest = function (payload, next, end) {
+  this.provider.send(payload, function (err, response) {
+    if (err) return end(err);
     // if (response.error) return end(new Error(response.error.message))
-    end(null, response.result)
-  })
-}
+    end(null, response.result);
+  });
+};

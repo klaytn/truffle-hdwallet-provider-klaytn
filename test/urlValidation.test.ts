@@ -1,5 +1,7 @@
-const assert = require("assert");
-const WalletProvider = require("../src/index.js");
+import assert from "assert";
+import WalletProvider from "../dist";
+import { describe, it } from "mocha";
+
 const { isValidProvider } = WalletProvider;
 
 describe("HD Wallet Provider Validator", () => {
@@ -13,6 +15,21 @@ describe("HD Wallet Provider Validator", () => {
 
   it("throws a meaningful error", () => {
     const badUrl = "localhost/v1/badbeef";
+    try {
+      new WalletProvider("", badUrl, 0, 100);
+      assert.fail("did not throw!");
+    } catch (e) {
+      const expectedMessage = [
+        `Malformed provider URL: '${badUrl}'`,
+        "Please specify a correct URL, using the http, https, ws, or wss protocol.",
+        ""
+      ].join("\n");
+      assert.equal(e.message, expectedMessage);
+    }
+  });
+
+  it("throws a meaningful error when url is without slashes or slash", () => {
+    const badUrl = "http:localhost/v1/badbeef";
     try {
       new WalletProvider("", badUrl, 0, 100);
       assert.fail("did not throw!");
