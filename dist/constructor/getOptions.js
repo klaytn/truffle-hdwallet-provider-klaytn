@@ -78,7 +78,7 @@ const matchesLegacyArguments = (args) =>
     args.filter(arg => arg !== undefined).length >= 2;
 // normalize arguments passed to constructor to match single, new-style options
 // argument
-exports.getOptions = (...args) => {
+const getOptions = (...args) => {
     if (matchesNewInputOptions(args)) {
         // if arguments already match new-style, no real transformation needed
         const [options] = args;
@@ -91,4 +91,5 @@ exports.getOptions = (...args) => {
         throw new Error("Unknown arguments format passed to new HDWalletProvider. Please check your configuration and try again");
     }
 };
+exports.getOptions = getOptions;
 //# sourceMappingURL=getOptions.js.map

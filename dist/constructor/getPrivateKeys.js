@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPrivateKeys = void 0;
 // extract the private keys if that's the style used, or return undefined
-exports.getPrivateKeys = (signingAuthority) => {
+const getPrivateKeys = (signingAuthority) => {
     if ("privateKeys" in signingAuthority) {
         return signingAuthority.privateKeys;
     }
@@ -10,4 +10,5 @@ exports.getPrivateKeys = (signingAuthority) => {
         return undefined;
     }
 };
+exports.getPrivateKeys = getPrivateKeys;
 //# sourceMappingURL=getPrivateKeys.js.map
