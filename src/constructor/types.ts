@@ -1,0 +1,29 @@
+/*
+ * type aliases for better readability around legacy positional arguments
+ */
+export type MnemonicPhrase = string;
+export type MnemonicPassword = string;
+export interface Mnemonic {
+  phrase: MnemonicPhrase;
+  password?: MnemonicPassword;
+}
+export type PrivateKey = string;
+export type Provider = any;
+export type ProviderUrl = string;
+export type ProviderOrUrl = Provider | ProviderUrl;
+export type AddressIndex = number;
+export type NumberOfAddresses = number;
+export type PollingInterval = number;
+export type ShareNonce = boolean;
+export type DerivationPath = string;
+
+export interface txResult {
+  messageHash: string,
+  v: string,
+  r: string,
+  s: string,
+  rawTransaction: string,
+  txHash: string,
+  senderTxHash: string,
+  feePayerSignatures: string[],
+}
