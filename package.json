@@ -4,7 +4,10 @@
   "license": "MIT",
   "author": "Klaytn Team <developer@klaytn.com>",
   "homepage": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn#readme",
-  "repository": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn",
+  "repository": {
+    "type": "git",
+    "url" : "https://github.com/klaytn/truffle-hdwallet-provider-klaytn"
+  },
   "bugs": {
     "url": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn/issues"
   },

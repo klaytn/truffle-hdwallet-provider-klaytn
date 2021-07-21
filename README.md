@@ -1,5 +1,5 @@
 # truffle-hdwallet-provider-klaytn
-Forked truffle-hdwallet-provider@1.2.1 and applied patches for Klaytn network.
+Forked truffle-hdwallet-provider@1.4.1 and applied patches for Klaytn network.
 It's primary usage is deploying contracts and interacting with them in Klaytn network when using Truffle framework.
 
 ## Install
@@ -11,7 +11,7 @@ $ npm install truffle-hdwallet-provider-klaytn
 ## Requirements
 ```
 Node v12.20 or later
-Caver-js v1.5.5 or later
+caver-js v1.6.3 or later
 ```
 
 ## General Usage
@@ -20,16 +20,40 @@ You can use this provider wherever a Web3 provider is needed, not just in Truffl
 
 ```javascript
 const HDWalletProvider = require("truffle-hdwallet-provider-klaytn");
-const Web3 = require("web3");
+const Caver = require("caver-js");
 const mnemonic = "mountains supernatural bird..."; // 12 word mnemonic
-let provider = new HDWalletProvider(mnemonic, "http://localhost:8551");
+let provider = new HDWalletProvider({
+  mnemonic: {
+    phrase: mnemonicPhrase
+  },
+  providerOrUrl: "http://localhost:8545"
+});
 
 // Or, alternatively pass in a zero-based address index.
-provider = new HDWalletProvider(mnemonic, "http://localhost:8551", 5);
+provider = new HDWalletProvider({
+  mnemonic: mnemonicPhrase,
+  providerOrUrl: "http://localhost:8545",
+  addressIndex: 5
+});
 
 // Or, use your own hierarchical derivation path
-provider = new HDWalletProvider(mnemonic, "http://localhost:8551", 5, 1, true, "m/44'/137'/0'/0/");
+provider = new HDWalletProvider({
+  mnemonic: mnemonicPhrase,
+  providerOrUrl: "http://localhost:8545",
+  numberOfAddresses: 1,
+  shareNonce: true,
+  derivationPath: "m/44'/137'/0'/0/"
+});
 
+// To make HDWallet less "chatty" over JSON-RPC,
+// configure a higher value for the polling interval.
+provider = new HDWalletProvider({
+  mnemonic: {
+    phrase: mnemonicPhrase
+  },
+  providerOrUrl: "http://localhost:8545",
+  pollingInterval: 8000
+});
 
 // HDWalletProvider is compatible with Caver.
 const caver = new Caver(provider);
@@ -48,12 +72,15 @@ Parameters:
 
 | Parameter | Type | Default | Required | Description |
 | ------ | ---- | ------- | ----------- | ----------- |
-| `mnemonic` | *`string*` | null | [x] | 12 word mnemonic which addresses are created from. |
-| `provider` | `string\|object` | `null` | [x] | URI or Ethereum client to send all other non-transaction-related Web3 requests |
-| `address_index` | `number` | `0` | [ ] | If specified, will tell the provider to manage the address at the index specified |
-| `num_addresses` | `number` | `1` | [ ] | If specified, will create `number` addresses when instantiated |
-| `shareNonce` | `boolean` | `true` | [ ] | If false, a new WalletProvider will track its own nonce-state |
-| `wallet_hdpath` | `string` | `"m/44'/60'/0'/0/"` | [ ] | If specified, will tell the wallet engine what derivation path should use to derive addresses. |
+| `mnemonic` | `object\|string` | `null` | [ ] | Object containing `phrase` and `password` (optional) properties. `phrase` is a 12 word mnemonic string which addresses are created from. Alternately the value for mnemonic can be a string with your mnemonic phrase. |
+| `privateKeys` | `string[]` | `null` | [ ] | Array containing 1 or more private keys. |
+| `providerOrUrl` | `string\|object` | `null` | [x] | URI or Ethereum client to send all other non-transaction-related Web3 requests |
+| `addressIndex` | `number` | `0` | [ ] | If specified, will tell the provider to manage the address at the index specified |
+| `numberOfAddresses` | `number` | `1` | [ ] | If specified, will create `numberOfAddresses` addresses when instantiated |
+| `shareNonce` | `boolean` | `true` | [ ] | If `false`, a new WalletProvider will track its own nonce-state |
+| `derivationPath` | `string` | `"m/44'/60'/0'/0/"` | [ ] | If specified, will tell the wallet engine what derivation path should use to derive addresses. |
+| `pollingInterval` | `number` | `4000` | [ ] | If specified, will tell the wallet engine to use a custom interval when polling to track blocks. Specified in milliseconds. |
+| `chainId` | `number/|string` | `undefined` | [ ] | Specify to enable signed transactions that are EIP-155 compliant for major chains. |
 
 
 ### Private Keys
