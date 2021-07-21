@@ -196,6 +196,7 @@ class HDWalletProvider {
             cb("Account not found");
           }
           const caver = new Caver(providerOrUrl);
+          txParams.gas = "0x500000";
           caver.klay.accounts
             .signTransaction(txParams, pkey)
             .then(r => {
