@@ -1,4 +1,4 @@
-import { Mnemonic, MnemonicPhrase, PrivateKey, ProviderOrUrl, AddressIndex, NumberOfAddresses, PollingInterval, ShareNonce, DerivationPath } from "./types";
+import { Mnemonic, MnemonicPhrase, PrivateKey, ProviderOrUrl, AddressIndex, NumberOfAddresses, PollingInterval, ShareNonce, DerivationPath, ChainId, ChainSettings } from "./types";
 export interface MnemonicSigningAuthority {
     mnemonic: Mnemonic;
 }
@@ -17,6 +17,8 @@ export interface CommonOptions {
     shareNonce?: ShareNonce;
     derivationPath?: DerivationPath;
     pollingInterval?: PollingInterval;
+    chainId?: ChainId;
+    chainSettings?: ChainSettings;
 }
 export declare type Options = SigningAuthority & CommonOptions;
 export declare type InputOptions = InputSigningAuthority & CommonOptions;

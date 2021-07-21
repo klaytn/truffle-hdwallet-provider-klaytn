@@ -14,7 +14,7 @@ var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (
 var __importStar = (this && this.__importStar) || function (mod) {
     if (mod && mod.__esModule) return mod;
     var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
     __setModuleDefault(result, mod);
     return result;
 };
@@ -32,7 +32,6 @@ var __rest = (this && this.__rest) || function (s, e) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-require("source-map-support/register");
 const bip39 = __importStar(require("ethereum-cryptography/bip39"));
 const english_1 = require("ethereum-cryptography/bip39/wordlists/english");
 const EthUtil = __importStar(require("ethereumjs-util"));
@@ -64,14 +63,15 @@ const singletonNonceSubProvider = new nonce_tracker_1.default();
 class HDWalletProvider {
     constructor(...args) {
         const _a = getOptions_1.getOptions(...args), { providerOrUrl, // required
-        addressIndex = 0, numberOfAddresses = 10, shareNonce = true, derivationPath = `m/44'/60'/0'/0/`, pollingInterval = 4000 } = _a, 
+        addressIndex = 0, numberOfAddresses = 10, shareNonce = true, derivationPath = `m/44'/60'/0'/0/`, pollingInterval = 4000, chainId, chainSettings = {} } = _a, 
         // what's left is either a mnemonic or a list of private keys
-        signingAuthority = __rest(_a, ["providerOrUrl", "addressIndex", "numberOfAddresses", "shareNonce", "derivationPath", "pollingInterval"]);
+        signingAuthority = __rest(_a, ["providerOrUrl", "addressIndex", "numberOfAddresses", "shareNonce", "derivationPath", "pollingInterval", "chainId", "chainSettings"]);
         const mnemonic = getMnemonic_1.getMnemonic(signingAuthority);
         const privateKeys = getPrivateKeys_1.getPrivateKeys(signingAuthority);
         this.walletHdpath = derivationPath;
         this.wallets = {};
         this.addresses = [];
+        this.chainSettings = chainSettings;
         this.engine = new web3_provider_engine_1.default({
             pollingInterval
         });
@@ -82,64 +82,50 @@ class HDWalletProvider {
                 ""
             ].join("\n"));
         }
-        // private helper to check if given mnemonic uses BIP39 passphrase protection
-        const checkBIP39Mnemonic = ({ phrase, password }) => {
-            this.hdwallet = ethereumjs_wallet_2.hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(phrase, password));
-            if (!bip39.validateMnemonic(phrase, english_1.wordlist)) {
-                throw new Error("Mnemonic invalid or undefined");
-            }
-            // crank the addresses out
-            for (let i = addressIndex; i < addressIndex + numberOfAddresses; i++) {
-                const wallet = this.hdwallet
-                    .derivePath(this.walletHdpath + i)
-                    .getWallet();
-                const addr = `0x${wallet.getAddress().toString("hex")}`;
-                this.addresses.push(addr);
-                this.wallets[addr] = wallet;
-            }
-        };
-        // private helper leveraging ethUtils to populate wallets/addresses
-        const ethUtilValidation = (privateKeys) => {
-            // crank the addresses out
-            for (let i = addressIndex; i < privateKeys.length; i++) {
-                const privateKey = Buffer.from(privateKeys[i].replace("0x", ""), "hex");
-                if (EthUtil.isValidPrivate(privateKey)) {
-                    const wallet = ethereumjs_wallet_1.default.fromPrivateKey(privateKey);
-                    const address = wallet.getAddressString();
-                    this.addresses.push(address);
-                    this.wallets[address] = wallet;
-                }
-            }
-        };
         if (mnemonic && mnemonic.phrase) {
-            checkBIP39Mnemonic(mnemonic);
+            this.checkBIP39Mnemonic(Object.assign(Object.assign({}, mnemonic), { addressIndex,
+                numberOfAddresses }));
         }
         else if (privateKeys) {
-            ethUtilValidation(privateKeys);
+            const options = Object.assign({}, { privateKeys }, { addressIndex });
+            this.ethUtilValidation(options);
         } // no need to handle else case here, since matchesNewOptions() covers it
         if (this.addresses.length === 0) {
             throw new Error(`Could not create addresses from your mnemonic or private key(s). ` +
                 `Please check that your inputs are correct.`);
         }
-        const tmp_accounts = this.addresses;
-        const tmp_wallets = this.wallets;
+        const tmpAccounts = this.addresses;
+        const tmpWallets = this.wallets;
+        // if user supplied the chain id, use that - otherwise fetch it
+        if (typeof chainId !== "undefined" || (chainSettings && typeof chainSettings.chainId !== "undefined")) {
+            this.chainId = chainId || chainSettings.chainId;
+            this.initialized = Promise.resolve();
+        }
+        else {
+            this.initialized = this.initialize();
+        }
+        // EIP155 compliant transactions are enabled for hardforks later
+        // than or equal to "spurious dragon"
+        this.hardfork = (chainSettings && chainSettings.hardfork) ?
+            chainSettings.hardfork :
+            "istanbul";
         this.engine.addProvider(new hooked_wallet_1.default({
             getAccounts(cb) {
-                cb(null, tmp_accounts);
+                cb(null, tmpAccounts);
             },
             getPrivateKey(address, cb) {
-                if (!tmp_wallets[address]) {
+                if (!tmpWallets[address]) {
                     return cb("Account not found");
                 }
                 else {
-                    cb(null, tmp_wallets[address].getPrivateKey().toString("hex"));
+                    cb(null, tmpWallets[address].getPrivateKey().toString("hex"));
                 }
             },
             signTransaction(txParams, cb) {
                 let pkey;
                 const from = txParams.from.toLowerCase();
-                if (tmp_wallets[from]) {
-                    pkey = "0x" + tmp_wallets[from].getPrivateKey().toString("hex");
+                if (tmpWallets[from]) {
+                    pkey = "0x" + tmpWallets[from].getPrivateKey().toString("hex");
                 }
                 else {
                     cb("Account not found");
@@ -158,10 +144,10 @@ class HDWalletProvider {
                 if (!dataIfExists) {
                     cb("No data to sign");
                 }
-                if (!tmp_wallets[from]) {
+                if (!tmpWallets[from]) {
                     cb("Account not found");
                 }
-                let pkey = tmp_wallets[from].getPrivateKey();
+                let pkey = tmpWallets[from].getPrivateKey();
                 const dataBuff = EthUtil.toBuffer(dataIfExists);
                 const msgHashBuff = EthUtil.hashPersonalMessage(dataBuff);
                 const sig = EthUtil.ecsign(msgHashBuff, pkey);
@@ -198,11 +184,71 @@ class HDWalletProvider {
                 throw err;
         });
     }
+    initialize() {
+        return new Promise((resolve, reject) => {
+            this.engine.sendAsync({
+                jsonrpc: '2.0',
+                id: Date.now(),
+                method: 'eth_chainId',
+                params: []
+            }, (error, response) => {
+                if (error) {
+                    reject(error);
+                    return;
+                }
+                else if (response.error) {
+                    reject(response.error);
+                    return;
+                }
+                if (isNaN(parseInt(response.result, 16))) {
+                    const message = "When requesting the chain id from the node, it" +
+                        `returned the malformed result ${response.result}.`;
+                    throw new Error(message);
+                }
+                this.chainId = parseInt(response.result, 16);
+                resolve();
+            });
+        });
+    }
+    // private helper to check if given mnemonic uses BIP39 passphrase protection
+    checkBIP39Mnemonic({ addressIndex, numberOfAddresses, phrase, password }) {
+        this.hdwallet = ethereumjs_wallet_2.hdkey.fromMasterSeed(bip39.mnemonicToSeedSync(phrase, password));
+        if (!bip39.validateMnemonic(phrase, english_1.wordlist)) {
+            throw new Error("Mnemonic invalid or undefined");
+        }
+        // crank the addresses out
+        for (let i = addressIndex; i < addressIndex + numberOfAddresses; i++) {
+            const wallet = this.hdwallet
+                .derivePath(this.walletHdpath + i)
+                .getWallet();
+            const addr = `0x${wallet.getAddress().toString("hex")}`;
+            this.addresses.push(addr);
+            this.wallets[addr] = wallet;
+        }
+    }
+    // private helper leveraging ethUtils to populate wallets/addresses
+    ethUtilValidation({ addressIndex, privateKeys }) {
+        // crank the addresses out
+        for (let i = addressIndex; i < privateKeys.length; i++) {
+            const privateKey = Buffer.from(privateKeys[i].replace("0x", ""), "hex");
+            if (EthUtil.isValidPrivate(privateKey)) {
+                const wallet = ethereumjs_wallet_1.default.fromPrivateKey(privateKey);
+                const address = wallet.getAddressString();
+                this.addresses.push(address);
+                this.wallets[address] = wallet;
+            }
+        }
+    }
+    ;
     send(payload, callback) {
-        return this.engine.send.call(this.engine, payload, callback);
+        this.initialized.then(() => {
+            this.engine.send(payload, callback);
+        });
     }
     sendAsync(payload, callback) {
-        this.engine.sendAsync.call(this.engine, payload, callback);
+        this.initialized.then(() => {
+            this.engine.sendAsync(payload, callback);
+        });
     }
     getAddress(idx) {
         if (!idx) {

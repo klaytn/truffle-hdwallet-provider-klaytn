@@ -1,3 +1,3 @@
-import { ConstructorArguments } from "./ConstructorArguments";
-import * as Constructor from "./Constructor";
+import type { ConstructorArguments } from "./ConstructorArguments";
+import type * as Constructor from "./Constructor";
 export declare const getOptions: (...args: ConstructorArguments) => Constructor.Options;

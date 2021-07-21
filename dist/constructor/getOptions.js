@@ -49,13 +49,14 @@ const fromInputOptions = (options) => {
 // convert legacy style positional arguments to new, single-arg options format
 const fromArguments = (args) => {
     // otherwise, if arguments match the old-style, extract properties and handle polymorphism
-    const [mnemonicPhraseOrPrivateKeys, providerOrUrl, addressIndex, numberOfAddresses, shareNonce, derivationPath] = args;
+    const [mnemonicPhraseOrPrivateKeys, providerOrUrl, addressIndex, numberOfAddresses, shareNonce, derivationPath, chainId] = args;
     const signingAuthority = getSigningAuthorityOptions(mnemonicPhraseOrPrivateKeys);
     return Object.assign(Object.assign({}, signingAuthority), { providerOrUrl,
         addressIndex,
         numberOfAddresses,
         shareNonce,
-        derivationPath });
+        derivationPath,
+        chainId });
 };
 // type predicate guard to determine at runtime if arguments conform to
 // new-style constructor args.
@@ -78,7 +79,7 @@ const matchesLegacyArguments = (args) =>
     args.filter(arg => arg !== undefined).length >= 2;
 // normalize arguments passed to constructor to match single, new-style options
 // argument
-exports.getOptions = (...args) => {
+const getOptions = (...args) => {
     if (matchesNewInputOptions(args)) {
         // if arguments already match new-style, no real transformation needed
         const [options] = args;
@@ -91,4 +92,5 @@ exports.getOptions = (...args) => {
         throw new Error("Unknown arguments format passed to new HDWalletProvider. Please check your configuration and try again");
     }
 };
+exports.getOptions = getOptions;
 //# sourceMappingURL=getOptions.js.map
