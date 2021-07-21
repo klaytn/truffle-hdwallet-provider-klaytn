@@ -6,7 +6,7 @@
   "homepage": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn#readme",
   "repository": {
     "type": "git",
-    "url" : "https://github.com/klaytn/truffle-hdwallet-provider-klaytn"
+    "url": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn"
   },
   "bugs": {
     "url": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn/issues"
@@ -39,10 +39,36 @@
     "@types/mocha": "5.2.7",
     "@types/web3": "1.0.20",
     "@types/web3-provider-engine": "14.0.0",
+    "@typescript-eslint/eslint-plugin": "4.28.4",
+    "@typescript-eslint/parser": "4.28.4",
+    "eslint": "5.16.0",
+    "eslint-plugin-react-hooks": "4.2.0",
     "ganache-core": "2.13.0",
+    "husky": "4.3.0",
+    "lint-staged": "10.5.0",
     "mocha": "9.0.2",
+    "prettier": "2.0.5",
     "ts-node": "9.0.0",
     "typescript": "4.1.4"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.tsx": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   },
   "publishConfig": {
     "access": "public"

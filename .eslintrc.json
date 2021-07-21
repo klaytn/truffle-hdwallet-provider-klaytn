@@ -1,8 +1,14 @@
 {
+  "root": true,
   "env": {
     "es6": true,
     "node": true
   },
+  "extends": [
+    "plugin:react-hooks/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
   "parserOptions": {
     "ecmaVersion": 9,
     "sourceType": "module"
@@ -13,9 +19,11 @@
       { "argsIgnorePattern": "^_", "varsIgnorePattern": "debug" }
     ],
     "quote-props": [ "error", "consistent" ],
+    "@typescript-eslint/semi": [ "error", "always" ],
     "semi": [ "error", "always" ],
     "no-mixed-operators": "warn",
     "no-tabs": "warn",
-    "no-useless-escape": "warn"
+    "no-useless-escape": "warn",
+    "no-undef": ["error", { "typeof": true }]
   }
 }
