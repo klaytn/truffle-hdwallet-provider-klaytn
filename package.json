@@ -4,11 +4,14 @@
   "license": "MIT",
   "author": "Klaytn Team <developer@klaytn.com>",
   "homepage": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn#readme",
-  "repository": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn"
+  },
   "bugs": {
     "url": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn/issues"
   },
-  "version": "1.2.1",
+  "version": "1.4.1",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && cp -r ./src/subproviders ./dist && cp -r ./src/util ./dist",
@@ -21,26 +24,51 @@
   "types": "dist/index.d.ts",
   "dependencies": {
     "@trufflesuite/web3-provider-engine": "15.0.13-1",
-    "@types/web3": "^1.0.20",
-    "any-promise": "^1.3.0",
-    "bindings": "^1.5.0",
+    "any-promise": "1.3.0",
+    "bindings": "1.5.0",
     "caver-js": "1.6.3",
-    "ethereum-cryptography": "^0.1.3",
+    "ethereum-cryptography": "0.1.3",
     "ethereum-protocol": "1.0.1",
     "ethereumjs-util": "6.2.0",
-    "ethereumjs-wallet": "1.0.1",
-    "source-map-support": "^0.5.19"
+    "ethereumjs-wallet": "1.0.1"
   },
   "devDependencies": {
-    "@types/bip39": "^2.4.2",
-    "@types/ethereum-protocol": "^1.0.0",
-    "@types/ethereumjs-util": "^5.2.0",
-    "@types/mocha": "^5.2.7",
-    "@types/web3-provider-engine": "^14.0.0",
+    "@types/bip39": "2.4.2",
+    "@types/ethereum-protocol": "1.0.0",
+    "@types/ethereumjs-util": "5.2.0",
+    "@types/mocha": "5.2.7",
+    "@types/web3": "1.0.20",
+    "@types/web3-provider-engine": "14.0.0",
+    "@typescript-eslint/eslint-plugin": "4.28.4",
+    "@typescript-eslint/parser": "4.28.4",
+    "eslint": "5.16.0",
+    "eslint-plugin-react-hooks": "4.2.0",
     "ganache-core": "2.13.0",
-    "mocha": "8.1.2",
-    "ts-node": "8.10.2",
-    "typescript": "3.9.6"
+    "husky": "4.3.0",
+    "lint-staged": "10.5.0",
+    "mocha": "9.0.2",
+    "prettier": "2.0.5",
+    "ts-node": "9.0.0",
+    "typescript": "4.1.4"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.tsx": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   },
   "publishConfig": {
     "access": "public"

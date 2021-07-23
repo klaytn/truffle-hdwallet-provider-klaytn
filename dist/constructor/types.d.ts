@@ -13,6 +13,12 @@ export declare type NumberOfAddresses = number;
 export declare type PollingInterval = number;
 export declare type ShareNonce = boolean;
 export declare type DerivationPath = string;
+export declare type ChainId = number;
+export declare type Hardfork = string;
+export declare type ChainSettings = {
+    hardfork?: Hardfork;
+    chainId?: ChainId;
+};
 export interface txResult {
     messageHash: string;
     v: string;

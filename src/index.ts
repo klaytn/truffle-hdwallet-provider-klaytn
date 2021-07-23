@@ -1,4 +1,3 @@
-import "source-map-support/register";
 import * as bip39 from "ethereum-cryptography/bip39";
 import { wordlist } from "ethereum-cryptography/bip39/wordlists/english";
 import * as EthUtil from "ethereumjs-util";
@@ -15,15 +14,20 @@ const ProviderSubprovider = require("./subproviders/provider.js");
 import RpcProvider from "@trufflesuite/web3-provider-engine/subproviders/rpc";
 // @ts-ignore
 import WebsocketProvider from "@trufflesuite/web3-provider-engine/subproviders/websocket";
+
 import Url from "url";
-import { JSONRPCRequestPayload, JSONRPCErrorCallback } from "ethereum-protocol";
-// @ts-ignore
-import { Callback, JsonRPCResponse } from "web3/providers";
-import { ConstructorArguments } from "./constructor/ConstructorArguments";
+import type {
+  JSONRPCRequestPayload,
+  JSONRPCErrorCallback,
+  JSONRPCResponsePayload
+} from "ethereum-protocol";
+import type { Callback, JsonRPCResponse } from "web3/providers";
+import type { ConstructorArguments } from "./constructor/ConstructorArguments";
 import { getOptions } from "./constructor/getOptions";
 import { getPrivateKeys } from "./constructor/getPrivateKeys";
 import { getMnemonic } from "./constructor/getMnemonic";
-import { txResult } from "./constructor/types";
+import type { ChainId, ChainSettings, Hardfork } from "./constructor/types";
+import type { txResult } from "./constructor/types";
 const Caver = require("caver-js");
 
 // Important: do not use debug module. Reason: https://github.com/trufflesuite/truffle/issues/2374#issuecomment-536109086
@@ -40,6 +44,10 @@ class HDWalletProvider {
   private walletHdpath: string;
   private wallets: { [address: string]: ethJSWallet };
   private addresses: string[];
+  private chainId?: ChainId;
+  private chainSettings: ChainSettings;
+  private hardfork: Hardfork;
+  private initialized: Promise<void>;
 
   public engine: ProviderEngine;
 
@@ -51,6 +59,8 @@ class HDWalletProvider {
       shareNonce = true,
       derivationPath = `m/44'/60'/0'/0/`,
       pollingInterval = 4000,
+      chainId,
+      chainSettings = {},
 
       // what's left is either a mnemonic or a list of private keys
       ...signingAuthority
@@ -62,6 +72,7 @@ class HDWalletProvider {
     this.walletHdpath = derivationPath;
     this.wallets = {};
     this.addresses = [];
+    this.chainSettings = chainSettings;
     this.engine = new ProviderEngine({
       pollingInterval
     });
@@ -76,79 +87,62 @@ class HDWalletProvider {
       );
     }
 
-    // private helper to check if given mnemonic uses BIP39 passphrase protection
-    const checkBIP39Mnemonic = ({
-      phrase,
-      password
-    }: {
-      phrase: string;
-      password?: string;
-    }) => {
-      this.hdwallet = EthereumHDKey.fromMasterSeed(
-        bip39.mnemonicToSeedSync(phrase, password)
-      );
-
-      if (!bip39.validateMnemonic(phrase, wordlist)) {
-        throw new Error("Mnemonic invalid or undefined");
-      }
-
-      // crank the addresses out
-      for (let i = addressIndex; i < addressIndex + numberOfAddresses; i++) {
-        const wallet = this.hdwallet
-          .derivePath(this.walletHdpath + i)
-          .getWallet();
-        const addr = `0x${wallet.getAddress().toString("hex")}`;
-        this.addresses.push(addr);
-        this.wallets[addr] = wallet;
-      }
-    };
-
-    // private helper leveraging ethUtils to populate wallets/addresses
-    const ethUtilValidation = (privateKeys: string[]) => {
-      // crank the addresses out
-      for (let i = addressIndex; i < privateKeys.length; i++) {
-        const privateKey = Buffer.from(privateKeys[i].replace("0x", ""), "hex");
-        if (EthUtil.isValidPrivate(privateKey)) {
-          const wallet = ethJSWallet.fromPrivateKey(privateKey);
-          const address = wallet.getAddressString();
-          this.addresses.push(address);
-          this.wallets[address] = wallet;
-        }
-      }
-    };
-
     if (mnemonic && mnemonic.phrase) {
-      checkBIP39Mnemonic(mnemonic);
+      this.checkBIP39Mnemonic({
+        ...mnemonic,
+        addressIndex,
+        numberOfAddresses
+      });
     } else if (privateKeys) {
-      ethUtilValidation(privateKeys);
+      const options = Object.assign({}, { privateKeys }, { addressIndex });
+      this.ethUtilValidation(options);
     } // no need to handle else case here, since matchesNewOptions() covers it
 
     if (this.addresses.length === 0) {
       throw new Error(
         `Could not create addresses from your mnemonic or private key(s). ` +
-        `Please check that your inputs are correct.`
+          `Please check that your inputs are correct.`
       );
     }
 
-    const tmp_accounts = this.addresses;
-    const tmp_wallets = this.wallets;
+    const tmpAccounts = this.addresses;
+    const tmpWallets = this.wallets;
+
+    // if user supplied the chain id, use that - otherwise fetch it
+    if (
+      typeof chainId !== "undefined" ||
+      (chainSettings && typeof chainSettings.chainId !== "undefined")
+    ) {
+      this.chainId = chainId || chainSettings.chainId;
+      this.initialized = Promise.resolve();
+    } else {
+      this.initialized = this.initialize();
+    }
+
+    // EIP155 compliant transactions are enabled for hardforks later
+    // than or equal to "spurious dragon"
+    this.hardfork =
+      chainSettings && chainSettings.hardfork
+        ? chainSettings.hardfork
+        : "istanbul";
+
     this.engine.addProvider(
       new HookedSubprovider({
         getAccounts(cb: any) {
-          cb(null, tmp_accounts);
+          cb(null, tmpAccounts);
         },
         getPrivateKey(address: string, cb: any) {
-          if (!tmp_wallets[address]) {
+          if (!tmpWallets[address]) {
             return cb("Account not found");
           } else {
-            cb(null, tmp_wallets[address].getPrivateKey().toString("hex"));
+            cb(null, tmpWallets[address].getPrivateKey().toString("hex"));
           }
         },
         signTransaction(txParams: any, cb: any) {
           let pkey;
           const from = txParams.from.toLowerCase();
-          if (tmp_wallets[from]) {
-            pkey = "0x" + tmp_wallets[from].getPrivateKey().toString("hex");
+          if (tmpWallets[from]) {
+            pkey = "0x" + tmpWallets[from].getPrivateKey().toString("hex");
           } else {
             cb("Account not found");
           }
@@ -166,10 +160,10 @@ class HDWalletProvider {
           if (!dataIfExists) {
             cb("No data to sign");
           }
-          if (!tmp_wallets[from]) {
+          if (!tmpWallets[from]) {
             cb("Account not found");
           }
-          let pkey = tmp_wallets[from].getPrivateKey();
+          let pkey = tmpWallets[from].getPrivateKey();
           const dataBuff = EthUtil.toBuffer(dataIfExists);
           const msgHashBuff = EthUtil.hashPersonalMessage(dataBuff);
           const sig = EthUtil.ecsign(msgHashBuff, pkey);
@@ -213,18 +207,103 @@ class HDWalletProvider {
     });
   }
 
+  private initialize(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      this.engine.sendAsync(
+        {
+          jsonrpc: "2.0",
+          id: Date.now(),
+          method: "eth_chainId",
+          params: []
+        },
+        (error: any, response: JSONRPCResponsePayload & { error?: any }) => {
+          if (error) {
+            reject(error);
+            return;
+          } else if (response.error) {
+            reject(response.error);
+            return;
+          }
+          if (isNaN(parseInt(response.result, 16))) {
+            const message =
+              "When requesting the chain id from the node, it" +
+              `returned the malformed result ${response.result}.`;
+            throw new Error(message);
+          }
+          this.chainId = parseInt(response.result, 16);
+          resolve();
+        }
+      );
+    });
+  }
+
+  // private helper to check if given mnemonic uses BIP39 passphrase protection
+  private checkBIP39Mnemonic({
+    addressIndex,
+    numberOfAddresses,
+    phrase,
+    password
+  }: {
+    addressIndex: number;
+    numberOfAddresses: number;
+    phrase: string;
+    password?: string;
+  }) {
+    this.hdwallet = EthereumHDKey.fromMasterSeed(
+      bip39.mnemonicToSeedSync(phrase, password)
+    );
+
+    if (!bip39.validateMnemonic(phrase, wordlist)) {
+      throw new Error("Mnemonic invalid or undefined");
+    }
+
+    // crank the addresses out
+    for (let i = addressIndex; i < addressIndex + numberOfAddresses; i++) {
+      const wallet = this.hdwallet
+        .derivePath(this.walletHdpath + i)
+        .getWallet();
+      const addr = `0x${wallet.getAddress().toString("hex")}`;
+      this.addresses.push(addr);
+      this.wallets[addr] = wallet;
+    }
+  }
+
+  // private helper leveraging ethUtils to populate wallets/addresses
+  private ethUtilValidation({
+    addressIndex,
+    privateKeys
+  }: {
+    addressIndex: number;
+    privateKeys: string[];
+  }) {
+    // crank the addresses out
+    for (let i = addressIndex; i < privateKeys.length; i++) {
+      const privateKey = Buffer.from(privateKeys[i].replace("0x", ""), "hex");
+      if (EthUtil.isValidPrivate(privateKey)) {
+        const wallet = ethJSWallet.fromPrivateKey(privateKey);
+        const address = wallet.getAddressString();
+        this.addresses.push(address);
+        this.wallets[address] = wallet;
+      }
+    }
+  }
+
   public send(
     payload: JSONRPCRequestPayload,
     callback: JSONRPCErrorCallback | Callback<JsonRPCResponse>
   ): void {
-    return this.engine.send.call(this.engine, payload, callback);
+    this.initialized.then(() => {
+      this.engine.send(payload, callback);
+    });
   }
 
   public sendAsync(
     payload: JSONRPCRequestPayload,
     callback: JSONRPCErrorCallback | Callback<JsonRPCResponse>
   ): void {
-    this.engine.sendAsync.call(this.engine, payload, callback);
+    this.initialized.then(() => {
+      this.engine.sendAsync(payload, callback);
+    });
   }
 
   public getAddress(idx?: number): string {

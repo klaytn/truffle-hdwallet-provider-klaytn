@@ -1,7 +1,7 @@
-import { MnemonicPhrase, PrivateKey } from "./types";
-import { ConstructorArguments } from "./ConstructorArguments";
-import * as Constructor from "./Constructor";
-import * as LegacyConstructor from "./LegacyConstructor";
+import type { MnemonicPhrase, PrivateKey } from "./types";
+import type { ConstructorArguments } from "./ConstructorArguments";
+import type * as Constructor from "./Constructor";
+import type * as LegacyConstructor from "./LegacyConstructor";
 import { validateMnemonic } from "ethereum-cryptography/bip39";
 import { wordlist } from "ethereum-cryptography/bip39/wordlists/english";
 
@@ -78,7 +78,8 @@ const fromArguments = (
     addressIndex,
     numberOfAddresses,
     shareNonce,
-    derivationPath
+    derivationPath,
+    chainId
   ] = args;
 
   const signingAuthority = getSigningAuthorityOptions(
@@ -91,7 +92,8 @@ const fromArguments = (
     addressIndex,
     numberOfAddresses,
     shareNonce,
-    derivationPath
+    derivationPath,
+    chainId
   };
 };
 
