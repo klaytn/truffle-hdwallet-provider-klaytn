@@ -11,7 +11,7 @@
   "bugs": {
     "url": "https://github.com/klaytn/truffle-hdwallet-provider-klaytn/issues"
   },
-  "version": "1.4.1",
+  "version": "1.4.2",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && cp -r ./src/subproviders ./dist && cp -r ./src/util ./dist",
