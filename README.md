@@ -2,6 +2,11 @@
 Forked truffle-hdwallet-provider@1.4.1 and applied patches for Klaytn network.
 It's primary usage is deploying contracts and interacting with them in Klaytn network when using Truffle framework.
 
+# Branch name will be changed
+
+We will change the `master` branch to `main` on Nov 1, 2022.
+After the branch policy change, please check your local or forked repository settings. 
+
 ## Install
 
 ```
